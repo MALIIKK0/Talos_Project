@@ -1,0 +1,12 @@
+[Client / Salesforce]
+      ↓ POST /api/logs/error
+[FastAPI ingestion -> normalized ] ->    --persist--> [Postgres]
+      ↓ publish            ↓
+   Kafka topic: error_events
+
+                                         ↓ consumed by
+                                     [Orchestrator Worker(s)]
+                                          - run the workflow
+                                          - store results -> Postgres
+                                          - publish -> orchestrator_results topic
+[Agents API] (optional) <--- read results from DB / orchestrator_results

@@ -1,0 +1,17 @@
+deepagents
+langchain
+langgraph
+tavily-python
+python-dotenv
+fastapi
+uvicorn
+langchain-google-genai
+langchain-groq
+langchain_core
+langchain_community
+langsmith
+langgraph-cli[inmem]
+IPython
+weaviate-client==4.18.3
+simple_salesforce
+langchain_openai
