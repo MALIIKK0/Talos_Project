@@ -14,7 +14,7 @@ from DataIngestion.app.db.engine import init_engine, dispose_engine
 from DataIngestion.app.db.init_db import validate_connection, init_db
 from DataIngestion.app.kafka.producer import get_kafka_producer, close_kafka_producer
 from DataIngestion.app.kafka.consumer import start_consumer_forever
-
+print("BOOTSTRAP =", settings.KAFKA_BOOTSTRAP_SERVERS)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """

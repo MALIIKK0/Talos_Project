@@ -3,7 +3,8 @@ import json
 from aiokafka import AIOKafkaConsumer
 from loguru import logger
 from DataIngestion.app.core.config import settings
-
+import os
+print("KAFKA_BOOTSTRAP_SERVERS =", os.getenv("KAFKA_BOOTSTRAP_SERVERS"))
 
 consumer: AIOKafkaConsumer | None = None
 

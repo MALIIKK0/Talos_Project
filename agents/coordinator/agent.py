@@ -5,7 +5,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 from deepagents import create_deep_agent, CompiledSubAgent
 from agents.LLMs import model,llama,coordinator_brain_openrouter
 from agents.context_retrieval.agent import build_agent as build_context_agent
-from agents.root_cause.agent import build_agent as build_root_cause_agent
 from agents.fix_proposal.agent import build_agent as build_fix_proposal_agent
 from agents.fix_application.agent import build_agent as build_fix_application_agent
 
@@ -47,7 +46,6 @@ def create_orchestrator(additional_tools=None, model=model):
     
     # Build all sub-agents as compiled graphs
     context_agent = build_context_agent()
-    root_cause_agent = build_root_cause_agent()
     fix_proposal_agent = build_fix_proposal_agent()
     fix_application_agent = build_fix_application_agent()
 # context_agent = build_context_agent(model=model)

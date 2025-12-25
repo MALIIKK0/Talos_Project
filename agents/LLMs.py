@@ -102,6 +102,19 @@ fix_proposal_brain_openrouter = ChatOpenAI(
     timeout=None,
     max_retries=2,
 )
+fix_application_brain_openrouter = ChatOpenAI(
+    model="mistralai/devstral-2512:free",
+    temperature=0,
+    api_key=os.getenv("OPR4"),  # ✅ MUST be api_key
+    base_url="https://openrouter.ai/api/v1",  # ✅ new name
+    default_headers={  # ✅ REQUIRED by OpenRouter (strongly recommended)
+        "HTTP-Referer": "http://localhost",   # or your repo / site
+        "X-Title": "TALOS",
+    },
+    max_tokens=None,
+    timeout=None,
+    max_retries=2,
+)
 coordinator_brain_groq = ChatGroq(
     model="llama-3.3-70b-versatile",
     temperature=0,
