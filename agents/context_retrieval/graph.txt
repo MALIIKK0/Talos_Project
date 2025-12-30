@@ -1,0 +1,29 @@
+{
+      "_id": "69539bc3ce861b719ead7b4e",
+      "createdDate": "2025-12-30T09:30:42Z",
+      "stackTrace": "Class.FaultyOrderProcess.createContactWithError: line 10, column 1\nAnonymousBlock: line 1, column 1\nAnonymousBlock: line 1, column 1",
+      "source": "FaultyOrderProcess",
+      "referenceId": null,
+      "message_short": "Account error",
+      "message": "Error during Account / Contact creation\nException message: Insert failed. First exception on row 0; first error: REQUIRED_FIELD_MISSING, Required fields are missing: [Name]: [Name]",
+      "logCode": null,
+      "function": "createContactWithError",
+      "name": "a00g5000004RWXo",
+      "id": "a00g5000004RWXoAAO",
+      "_received_at": "2025-12-30T09:30:43.804000Z"
+    },
+
+    {
+      "_id": "6953a8facc16dd884acaebff",
+      "createdDate": "2025-12-30T10:27:05Z",
+      "stackTrace": "Class.FaultyOpportunityProcess.createOpportunityWithError: line 20, column 1\nAnonymousBlock: line 1, column 1\nAnonymousBlock: line 1, column 1",
+      "source": "FaultyOpportunityProcess",
+      "referenceId": null,
+      "message_short": "Opportunity error",
+      "message": "Error while creating Opportunity\nException message: Insert failed. First exception on row 0; first error: REQUIRED_FIELD_MISSING, Required fields are missing: [CloseDate]: [CloseDate]",
+      "logCode": null,
+      "function": "createOpportunityWithError",
+      "name": "a00g5000004S6rN",
+      "id": "a00g5000004S6rNAAS",
+      "_received_at": "2025-12-30T10:27:06.785000Z"
+    }

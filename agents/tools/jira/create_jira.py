@@ -1,5 +1,7 @@
 import os
 import requests
+import json
+import ast
 from typing import Dict, Any, List, Optional, Union
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -55,27 +57,21 @@ def build_adf_from_text(text: str) -> dict:
 
 
 def build_fix_section(fix: Dict[str, Any]) -> List[dict]:
-    """Build ADF blocks for one fix."""
     blocks = []
 
-    # Fix title
-    blocks.append({
-        "type": "paragraph",
-        "content": [{
-            "type": "text",
-            "text": f"🔧 Fix: {fix.get('title', 'Unnamed Fix')}",
-            "marks": [{"type": "strong"}]
-        }]
-    })
+    title = fix.get("title", "Unnamed Fix")
+    blocks.append(adf_heading(f"✅ {title}", level=3))
 
-    # Explanation
+    meta = []
+    if fix.get("risk"): meta.append(f"Risk: {fix['risk']}")
+    if fix.get("effort"): meta.append(f"Effort: {fix['effort']}")
+    if fix.get("confidence") is not None: meta.append(f"Confidence: {fix['confidence']}")
+    if meta:
+        blocks.append(adf_bullet_list(meta))
+
     if fix.get("explanation"):
-        blocks.append({
-            "type": "paragraph",
-            "content": [{"type": "text", "text": fix["explanation"]}]
-        })
+        blocks.append(adf_panel([adf_paragraph(fix["explanation"])], panel_type="note"))
 
-    # Code snippet
     if fix.get("code"):
         blocks.append({
             "type": "codeBlock",
@@ -86,47 +82,147 @@ def build_fix_section(fix: Dict[str, Any]) -> List[dict]:
     return blocks
 
 
-def build_structured_adf_description(root_cause: str, fixes: List[Dict[str, Any]]) -> dict:
-    """Build full Jira ADF description with root cause + fixes."""
-    content = []
+def adf_text(text: str, strong: bool = False, code: bool = False) -> dict:
+    node = {"type": "text", "text": text}
+    marks = []
+    if strong:
+        marks.append({"type": "strong"})
+    if code:
+        marks.append({"type": "code"})
+    if marks:
+        node["marks"] = marks
+    return node
 
-    # Root Cause Header
-    content.append({
-        "type": "paragraph",
-        "content": [{
-            "type": "text",
-            "text": "🧠 Root Cause",
-            "marks": [{"type": "strong"}]
-        }]
-    })
-
-    content.extend(build_adf_from_text(root_cause)["content"])
-
-    # Fixes Header
-    content.append({
-        "type": "paragraph",
-        "content": [{
-            "type": "text",
-            "text": "✅ Proposed Fixes",
-            "marks": [{"type": "strong"}]
-        }]
-    })
-
-    for fix in fixes:
-        content.extend(build_fix_section(fix))
-
+def adf_heading(text: str, level: int = 2) -> dict:
     return {
-        "type": "doc",
-        "version": 1,
-        "content": content
+        "type": "heading",
+        "attrs": {"level": level},
+        "content": [adf_text(text, strong=True)]
     }
+
+def adf_paragraph(text: str) -> dict:
+    return {"type": "paragraph", "content": [adf_text(text)]}
+
+def adf_rule() -> dict:
+    return {"type": "rule"}
+
+def adf_panel(children: List[dict], panel_type: str = "info") -> dict:
+    # panel_type: "info" | "note" | "warning" | "success"
+    return {"type": "panel", "attrs": {"panelType": panel_type}, "content": children}
+
+def adf_bullet_list(items: List[str]) -> dict:
+    return {
+        "type": "bulletList",
+        "content": [
+            {
+                "type": "listItem",
+                "content": [{"type": "paragraph", "content": [adf_text(it)]}]
+            } for it in items if it and str(it).strip()
+        ]
+    }
+
+def adf_table(rows: List[List[str]]) -> dict:
+    # rows: [["Header1","Header2"],["v1","v2"]...]
+    return {
+        "type": "table",
+        "content": [
+            {
+                "type": "tableRow",
+                "content": [
+                    {
+                        "type": "tableHeader" if r_i == 0 else "tableCell",
+                        "content": [{"type": "paragraph", "content": [adf_text(cell, strong=(r_i == 0))]}]
+                    }
+                    for cell in row
+                ]
+            }
+            for r_i, row in enumerate(rows)
+        ]
+    }
+
+
+def build_structured_adf_description(root_cause: str, fixes: List[Dict[str, Any]]) -> dict:
+    content: List[dict] = []
+
+    # Header
+    content.append(adf_heading("⚠️ Bug Report", level=2))
+    content.append(adf_panel(
+        [adf_paragraph("Auto-generated ticket with structured root cause and proposed fixes.")],
+        panel_type="info"
+    ))
+    content.append(adf_rule())
+
+    # Root cause
+    content.append(adf_heading("🧠 Root Cause", level=2))
+    if root_cause and str(root_cause).strip():
+        # keep your existing line splitting logic but within a panel
+        rc_paras = build_adf_from_text(root_cause)["content"]
+        content.append(adf_panel(rc_paras, panel_type="warning"))
+    else:
+        content.append(adf_panel([adf_paragraph("Root cause not provided.")], panel_type="warning"))
+
+    content.append(adf_rule())
+
+    # Fixes
+    content.append(adf_heading("🛠️ Proposed Fixes", level=2))
+    if fixes:
+        for i, fix in enumerate(fixes, start=1):
+            # Optional: add numbering feel
+            fix = dict(fix)
+            if "title" in fix and fix["title"]:
+                fix["title"] = f"Option {i} — {fix['title']}"
+            content.extend(build_fix_section(fix))
+            if i != len(fixes):
+                content.append(adf_rule())
+    else:
+        content.append(adf_panel([adf_paragraph("No fixes provided.")], panel_type="note"))
+
+    return {"type": "doc", "version": 1, "content": content}
+
+def normalize_description(description: Union[str, Dict[str, Any]]) -> Union[str, Dict[str, Any]]:
+    # If already a dict -> ok
+    if isinstance(description, dict):
+        return description
+
+    if not isinstance(description, str):
+        return str(description)
+
+    s = description.strip()
+
+    # Try JSON first
+    if (s.startswith("{") and s.endswith("}")) or (s.startswith("[") and s.endswith("]")):
+        try:
+            return json.loads(s)
+        except Exception:
+            pass
+
+    # Try Python literal dict (single quotes) -> ast
+    try:
+        val = ast.literal_eval(s)
+        if isinstance(val, dict):
+            return val
+    except Exception:
+        pass
+
+    # fallback: keep as text
+    return s
+
 
 # =========================
 # Jira Creation Logic
 # =========================
 def create_jira_bug(payload: Dict[str, Any]) -> Dict[str, str]:
     title = payload.get("title")
-    description = payload.get("description")
+    description = normalize_description(payload.get("description"))
+
+    # normalize: if description is a JSON string, parse it
+    if isinstance(description, str):
+        s = description.strip()
+        if (s.startswith("{") and s.endswith("}")) or (s.startswith("[") and s.endswith("]")):
+            try:
+                description = json.loads(s)
+            except Exception:
+                pass
 
     if not title or description is None:
         raise ValueError("Jira payload must include title and description")
@@ -142,6 +238,11 @@ def create_jira_bug(payload: Dict[str, Any]) -> Dict[str, str]:
         str(payload.get("priority", "Medium")).upper(),
         "Medium"
     )
+
+    print("=== JIRA DEBUG ===")
+    print("description python type:", type(description))
+    print("description preview:", str(description)[:300])
+    print("==================")
 
     # Description handling (string OR structured)
     if isinstance(description, dict):
@@ -163,6 +264,11 @@ def create_jira_bug(payload: Dict[str, Any]) -> Dict[str, str]:
             "components": [{"name": c} for c in payload.get("components", [])],
         }
     }
+
+    print("=== JIRA PAYLOAD SENT ===")
+    print("description field type:", type(issue_payload["fields"]["description"]))
+    print(json.dumps(issue_payload["fields"]["description"], indent=2)[:1500])
+    print("=========================")
 
     url = f"{JIRA_BASE_URL}/rest/api/3/issue"
     response = requests.post(
@@ -218,3 +324,30 @@ jira_create_tool = StructuredTool.from_function(
     ),
     args_schema=JiraBugInput,
 )
+
+
+
+#mainnnnnnnnn
+
+if __name__ == "__main__":
+    res = create_jira_bug_wrapper(
+        title="TEST ADF DESIGN",
+        description={
+            "root_cause": "This is a test root cause.",
+            "fixes": [
+                {
+                    "title": "Wrap update in try/catch",
+                    "explanation": "Catch DmlException and log it properly.",
+                    "code": "try {\n  update l;\n} catch (DmlException e) {\n  System.debug(e.getMessage());\n}",
+                    "language": "apex",
+                    "risk": "LOW",
+                    "effort": "LOW",
+                    "confidence": 0.9
+                }
+            ]
+        },
+        priority="Medium",
+        labels=["talos", "adf-test"],
+        components=["JiraTool"]
+    )
+    print(res)

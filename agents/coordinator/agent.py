@@ -3,11 +3,12 @@ import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from deepagents import create_deep_agent, CompiledSubAgent
-from agents.LLMs import model,llama,coordinator_brain_openrouter
+from agents.LLMs import coordinator_brain_openrouter
 from agents.context_retrieval.agent import build_agent as build_context_agent
-from agents.root_cause.agent import build_agent as build_root_cause_agent
 from agents.fix_proposal.agent import build_agent as build_fix_proposal_agent
 from agents.fix_application.agent import build_agent as build_fix_application_agent
+from agents.judge_fix.agent import build_agent as build_judge_fix_agent
+from agents.tools.jira.create_jira import jira_create_tool
 
 from dotenv import load_dotenv
 
@@ -18,7 +19,7 @@ prompt_file_path = os.path.join(BASE_DIR, "prompt.md")
 
 with open(prompt_file_path, "r", encoding="utf-8") as f:
     ORCHESTRATOR_PROMPT = f.read()
-def create_orchestrator(additional_tools=None, model=model):
+def create_orchestrator(additional_tools=None, model=coordinator_brain_openrouter):
     """
     Creates the orchestrator agent with sub-agents.
     
@@ -47,13 +48,9 @@ def create_orchestrator(additional_tools=None, model=model):
     
     # Build all sub-agents as compiled graphs
     context_agent = build_context_agent()
-    root_cause_agent = build_root_cause_agent()
     fix_proposal_agent = build_fix_proposal_agent()
     fix_application_agent = build_fix_application_agent()
-# context_agent = build_context_agent(model=model)
-# root_cause_agent = build_root_cause_agent(model=model)
-# fix_proposal_agent = build_fix_proposal_agent(model=model)
-# fix_application_agent = build_fix_application_agent(model=model)
+    judge_fix_agent = build_judge_fix_agent()
 
     # Define sub-agents for the orchestrator
     
@@ -73,9 +70,15 @@ Output: JSON with context_meta, retrieval_query, retrieved_context, and status."
         "`salesforce_context` (faulty_class, related_sobject, missing_fields_detected, missing_fields_enriched, test_classes).  Output: detailed fix proposals with code changes.",
             runnable=fix_proposal_agent
         ),
+         CompiledSubAgent(
+        name="judge-fix",
+        description="""Evaluates fix proposals against context.
+Detects hallucinations, scores quality, selects best fix, and approves or rejects.""",
+        runnable=judge_fix_agent
+    ),
         CompiledSubAgent(
             name="fix-application",
-            description="Applies approved fixes: creates branch, commits changes, opens PR, updates JIRA. REQUIRES human approval before execution. Input: fix proposal. Output: PR link and status.",
+            description="Applies approved fixes: creates branch, commits changes, opens PR, updates JIRA. Input: fix proposal. Output: PR link and status.",
             runnable=fix_application_agent
         )
     ]
@@ -85,7 +88,12 @@ Output: JSON with context_meta, retrieval_query, retrieved_context, and status."
         system_prompt=ORCHESTRATOR_PROMPT,
         subagents=subagents,
         model=coordinator_brain_openrouter,
-        tools=additional_tools or [],
+        tools=additional_tools or [jira_create_tool],
+        interrupt_on={
+    "fix-application": {
+        "*": {"reason": "Workflow completed"}
+    }
+}
 #         interrupt_on={
 #     "fix-application": {"*": {"reason": "Human approval required"}}
 # }
@@ -100,7 +108,7 @@ Output: JSON with context_meta, retrieval_query, retrieved_context, and status."
 class AgentOrchestrator:
     """Orchestrates multiple agents in a coordinated workflow."""
     
-    def __init__(self, additional_tools=None, model=model):
+    def __init__(self, additional_tools=None, model=coordinator_brain_openrouter):
         self.orchestrator = create_orchestrator(additional_tools, model)
     
     def run(self, problem_description: str, config=None):
