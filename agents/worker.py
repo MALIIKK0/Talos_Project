@@ -50,7 +50,7 @@ def build_problem(event: dict) -> str:
 
 # ---------- Kafka ----------
 
-KAFKA = os.getenv("KAFKA", "localhost:9092")
+KAFKA = os.getenv("KAFKA", "localhost:29092")
 INPUT_TOPIC = os.getenv("INPUT_TOPIC", "error_events")
 OUTPUT_TOPIC = os.getenv("OUTPUT_TOPIC", "orchestrator_results")
 
