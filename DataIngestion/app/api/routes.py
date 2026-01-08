@@ -8,6 +8,8 @@ from DataIngestion.app.services.ingest import publish_and_store
 from DataIngestion.app.core.config import settings
 from loguru import logger
 from datetime import datetime
+from sqlalchemy.future import select
+from DataIngestion.app.models.error_event import ErrorEvent
 
 router = APIRouter(prefix="/api/logs")
 
@@ -45,3 +47,31 @@ async def receive_error(payload: ErrorPayload, db: AsyncSession = Depends(get_db
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal ingestion error"
         )
+
+
+@router.get("/errors")
+async def get_all_errors(db: AsyncSession = Depends(get_db)):
+    """
+    Returns all error events from the database.
+    """
+    result = await db.execute(select(ErrorEvent).order_by(ErrorEvent.created_date.desc()))
+    errors = result.scalars().all()
+
+    # Serialize for JSON response
+    def serialize(e: ErrorEvent):
+        return {
+            "id": e.id,
+            "source": e.source,
+            "function": e.function,
+            "message": e.message,
+            "message_court": e.message_court,
+            "reference_id": e.reference_id,
+            "stack_trace": e.stack_trace,
+            "log_code": e.log_code,
+            "created_date": e.created_date.isoformat() if e.created_date else None,
+           # "raw_payload": e.raw_payload,
+            "created_at": e.created_at.isoformat() if e.created_at else None,
+            "status": e.status,
+        }
+
+    return [serialize(e) for e in errors]

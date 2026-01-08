@@ -52,7 +52,7 @@ class Settings(BaseSettings):
                              description="Use SSL for database connections")
 
     # ========== KAFKA SETTINGS ==========
-    KAFKA_BOOTSTRAP_SERVERS: str = Field("localhost:9092", env="KAFKA_BOOTSTRAP_SERVERS")
+    KAFKA_BOOTSTRAP_SERVERS: str = Field("localhost:29092", env="KAFKA_BOOTSTRAP_SERVERS")
     KAFKA_TOPIC: str = Field("error_events", env="KAFKA_TOPIC")
     KAFKA_CLIENT_ID: str = Field("error-ingestion-service", env="KAFKA_CLIENT_ID")
     KAFKA_CONSUMER_GROUP: str = Field("data_ingestion_group", env="KAFKA_CONSUMER_GROUP")

@@ -88,6 +88,7 @@ async def log_requests(request: Request, call_next):
     return response
 
 
+
 if __name__ == "__main__":
     uvicorn.run(
         "app.main:app",

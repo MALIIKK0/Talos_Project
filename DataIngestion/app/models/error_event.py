@@ -17,5 +17,6 @@ class ErrorEvent(Base):
     stack_trace = Column(Text, nullable=True)
     log_code = Column(String(100), nullable=True)
     created_date = Column(DateTime(timezone=True), nullable=True)
-    raw_payload = Column(JSON, nullable=True)
+    status = Column(String(50), nullable=False, server_default="processing")
+    #raw_payload = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
