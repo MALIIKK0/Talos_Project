@@ -115,29 +115,5 @@ fix_application_brain_openrouter = ChatOpenAI(
     timeout=None,
     max_retries=2,
 )
-coordinator_brain_groq = ChatGroq(
-    model="llama-3.3-70b-versatile",
-    temperature=0,
-    api_key=os.getenv("JB2"),
-    max_tokens=None,
-    timeout=None,
-    max_retries=2,
-)
 
-context_retrieval_brain_groq = ChatGroq(
-    model="llama-3.3-70b-versatile",
-    temperature=0,
-    api_key=os.getenv("JB2"),
-    max_tokens=None,
-    timeout=None,
-    max_retries=2,
-)
 
-fix_proposal_brain_groq = ChatGroq(
-    model="openai/gpt-oss-20b",
-    temperature=0,
-    api_key=os.getenv("JB3"),
-    max_tokens=None,
-    timeout=None,
-    max_retries=2,
-)
