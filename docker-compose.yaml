@@ -1,0 +1,91 @@
+services:
+  # --------------------- #
+  #        KAFKA          #
+  # --------------------- #
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: kafka
+    environment:
+      KAFKA_KRAFT_MODE: "true"
+      CLUSTER_ID: "aZ5lSTh0RO-E7sasd3n8AA"
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+    ports:
+      - "29092:29092"
+    networks:
+      - talos
+
+
+  # --------------------- #
+  #       KAFKA UI        #
+  # --------------------- #
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: talos
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    depends_on:
+      - kafka
+    networks:
+      - talos
+
+  # --------------------- #
+  #       POSTGRES        #
+  # --------------------- #
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: state_user
+      POSTGRES_PASSWORD: state_password
+      POSTGRES_DB: state_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - talos
+
+  # --------------------- #
+  #        PGADMIN        #
+  # --------------------- #
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - talos
+
+
+
+# ------------------------- #
+#        NETWORK + VOLS     #
+# ------------------------- #
+networks:
+  talos:
+
+volumes:
+  pgdata:

@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "research": "agents.coordinator.langgraphCLI:orchestrator"
+  },
+  "env": ".env"
+}
