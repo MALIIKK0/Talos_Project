@@ -10,6 +10,7 @@ from loguru import logger
 from datetime import datetime
 from sqlalchemy.future import select
 from DataIngestion.app.models.error_event import ErrorEvent
+from fastapi import Path
 
 router = APIRouter(prefix="/api/logs")
 
@@ -75,3 +76,36 @@ async def get_all_errors(db: AsyncSession = Depends(get_db)):
         }
 
     return [serialize(e) for e in errors]
+
+@router.get("/errors/{error_id}")
+async def get_error_by_id(
+    error_id: int = Path(..., description="ID of the error event"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns a single error event by its ID.
+    """
+    result = await db.execute(select(ErrorEvent).where(ErrorEvent.id == error_id))
+    error = result.scalar_one_or_none()
+
+    if not error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Error event with id {error_id} not found"
+        )
+
+    # Serialize for JSON response
+    return {
+        "id": error.id,
+        "source": error.source,
+        "function": error.function,
+        "message": error.message,
+        "message_court": error.message_court,
+        "reference_id": error.reference_id,
+        "stack_trace": error.stack_trace,
+        "log_code": error.log_code,
+        "created_date": error.created_date.isoformat() if error.created_date else None,
+        # "raw_payload": error.raw_payload,
+        "created_at": error.created_at.isoformat() if error.created_at else None,
+        "status": error.status,
+    }
