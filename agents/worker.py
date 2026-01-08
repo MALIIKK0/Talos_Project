@@ -51,8 +51,13 @@ def build_problem(event: dict) -> str:
 
 # ---------- Kafka Config ----------
 
+<<<<<<< HEAD
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:29092")
 INPUT_TOPIC = os.getenv("KAFKA_TOPIC", "error_events")
+=======
+KAFKA = os.getenv("KAFKA", "localhost:29092")
+INPUT_TOPIC = os.getenv("INPUT_TOPIC", "error_events")
+>>>>>>> 754bb64d906ae5488224821736a0146af0de0344
 OUTPUT_TOPIC = os.getenv("OUTPUT_TOPIC", "orchestrator_results")
 
 GROUP_ID = "orchestrator-workers"
