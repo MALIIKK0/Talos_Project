@@ -41,8 +41,4 @@ def build_agent(model_instance=None):
             # GitHub
             github_create_pr
         ],
-<<<<<<< HEAD
     )
-=======
-    )
->>>>>>> 754bb64d906ae5488224821736a0146af0de0344

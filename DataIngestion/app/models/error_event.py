@@ -1,9 +1,7 @@
 # app/models/error_event.py
-from sqlalchemy import Column, Integer, String, Text, DateTime, JSON
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, Integer, String, Text, DateTime
 from sqlalchemy.sql import func
-
-Base = declarative_base()
+from DataIngestion.app.models.base import Base
 
 class ErrorEvent(Base):
     __tablename__ = "error_events"
@@ -17,5 +15,8 @@ class ErrorEvent(Base):
     stack_trace = Column(Text, nullable=True)
     log_code = Column(String(100), nullable=True)
     created_date = Column(DateTime(timezone=True), nullable=True)
-    raw_payload = Column(JSON, nullable=True)
+    status = Column(String(50), nullable=False, server_default="processing")
+    #raw_payload = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+

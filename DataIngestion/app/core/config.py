@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     DB_POOL_RECYCLE: int = 1800
     DB_ECHO: bool = False
     DB_USE_SSL: bool = False
+    JWT_SECRET_KEY : str = Field(...)
 
     # ---------- KAFKA ----------
     KAFKA_BOOTSTRAP_SERVERS: str = Field(...)

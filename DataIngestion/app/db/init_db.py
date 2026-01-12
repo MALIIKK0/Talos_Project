@@ -4,7 +4,9 @@ Database initialization (schema + tables).
 from sqlalchemy import text
 from loguru import logger
 from DataIngestion.app.db.engine import get_engine
-from DataIngestion.app.models.error_event import Base
+from DataIngestion.app.models.base import Base
+from DataIngestion.app.models.user import User
+from DataIngestion.app.models.error_event import ErrorEvent
 from DataIngestion.app.core.config import settings
 
 

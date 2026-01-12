@@ -1,8 +1,8 @@
 from fastapi import Depends, HTTPException, status
 
-from backend.auth.services.auth_service import get_current_user
-from backend.core.security.roles import UserRole
-from backend.user.models.user import User
+from DataIngestion.app.services.auth_service import get_current_user
+from DataIngestion.app.authorization.role import UserRole
+from DataIngestion.app.models.user import User
 
 
 def require_roles(*allowed_roles: UserRole):

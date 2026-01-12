@@ -39,7 +39,7 @@ def build_agent(model_instance=None):
     }
     """
 
-    model_to_use = model_instance or coordinator_brain_gemini
+    model_to_use = model_instance or  coordinator_brain_gemini
 
     # Ensure instance, not class
     if isinstance(model_to_use, type):
