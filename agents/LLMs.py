@@ -24,20 +24,20 @@ import os
 from langchain_openai import ChatOpenAI  # or from langchain.chat_models import ChatOpenAI
 
 coordinator_brain_openrouter = ChatOpenAI(
-    model="nex-agi/deepseek-v3.1-nex-n1:free",  # nex-agi/deepseek-v3.1-nex-n1:free
+    model="xiaomi/mimo-v2-flash:free",  #qwen/Qwen3-4B:free,  # nex-agi/deepseek-v3.1-nex-n1:free
     temperature=0,
     openai_api_key=os.getenv("OPR1"),  # Change environment variable name
     openai_api_base="https://openrouter.ai/api/v1",  # This is the key change
-    max_tokens=None,
+    max_tokens=2048,
     timeout=None,
     max_retries=2,
 )
 context_retrieval_brain_openrouter = ChatOpenAI(
-    model="nvidia/nemotron-3-nano-30b-a3b:free",  # nvidia/nemotron-3-nano-30b-a3b:free
+    model="arcee-ai/trinity-mini:free",  # nvidia/nemotron-3-nano-30b-a3b:free
     temperature=0,
     openai_api_key=os.getenv("OPR2"),  # Change environment variable name
     openai_api_base="https://openrouter.ai/api/v1",  # This is the key change
-    max_tokens=None,
+    max_tokens=2048,
     timeout=None,
     max_retries=2,
 )
@@ -46,7 +46,7 @@ fix_proposal_brain_openrouter = ChatOpenAI(
     temperature=0,
     openai_api_key=os.getenv("OPR3"),  # Change environment variable name
     openai_api_base="https://openrouter.ai/api/v1",  # This is the key change
-    max_tokens=None,
+    max_tokens=2048,
     timeout=None,
     max_retries=2,
 )
@@ -55,7 +55,7 @@ judge_brain_openrouter = ChatOpenAI(
     temperature=0,
     openai_api_key=os.getenv("OPR5"),  # Change environment variable name
     openai_api_base="https://openrouter.ai/api/v1",  # This is the key change
-    max_tokens=None,
+    max_tokens=2048,
     timeout=None,
     max_retries=2,
 )
@@ -64,7 +64,7 @@ fix_application_brain_openrouter = ChatOpenAI(
     temperature=0,
     api_key=os.getenv("OPR4"),  # ✅ MUST be api_key
     base_url="https://openrouter.ai/api/v1",  # ✅ new name
-    max_tokens=None,
+    max_tokens=2048,
     timeout=None,
     max_retries=2,
 )

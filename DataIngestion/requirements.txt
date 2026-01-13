@@ -7,3 +7,6 @@ aiokafka==0.10.0
 python-dateutil==2.8.2
 ujson==5.10.0
 loguru==0.7.0
+email-validator
+bcrypt 
+python-multipart

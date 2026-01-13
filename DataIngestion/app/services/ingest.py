@@ -65,6 +65,7 @@ async def persist_event(db: AsyncSession, normalized: Dict[str, Any]) -> ErrorEv
         created_date=created_dt,            # REAL datetime stored in DB
         status=normalized.get("status", "processing"),
         #raw_payload=raw_payload_safe        # JSON-safe sanitized payload
+        severity=normalized.get("severity", "INDEFINED"),
     )
 
     db.add(obj)

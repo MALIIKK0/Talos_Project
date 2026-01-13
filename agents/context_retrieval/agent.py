@@ -14,7 +14,7 @@ from deepagents import create_deep_agent
 from langchain_core.tools import StructuredTool
 import weaviate
 from weaviate.auth import Auth
-from agents.LLMs import context_retrieval_brain_openrouter  # This should be an instance
+from agents.LLMs import context_retrieval_brain_openrouter,coordinator_brain_gemini  # This should be an instance
 from tavily import TavilyClient
 from simple_salesforce import Salesforce, SalesforceAuthenticationFailed
 
@@ -648,7 +648,7 @@ def build_agent(model_instance=None):
         The compiled agent
     """
     # Use provided instance or default
-    model_to_use = model_instance or context_retrieval_brain_openrouter
+    model_to_use = model_instance or coordinator_brain_gemini#context_retrieval_brain_openrouter
     
     # Verify it's an instance, not a class
     if isinstance(model_to_use, type):

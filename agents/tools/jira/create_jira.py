@@ -6,6 +6,8 @@ from typing import Dict, Any, List, Optional, Union
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from langchain_core.tools import StructuredTool
+import psycopg2
+from psycopg2 import Error
 
 load_dotenv()
 
@@ -20,6 +22,17 @@ JIRA_ISSUE_TYPE = os.getenv("JIRA_ISSUE_TYPE", "Bug")
 
 if not all([JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN, JIRA_PROJECT_KEY]):
     raise RuntimeError("Missing required Jira environment variables")
+
+# =========================
+# PostgreSQL Environment
+# =========================
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "5432")
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+#DB_TABLE = os.getenv("DB_TABLE", "error_events")
+DB_TABLE = os.getenv("DB_TABLE", "state_db.error_events")
 
 # =========================
 # Pydantic Schema
@@ -209,6 +222,89 @@ def normalize_description(description: Union[str, Dict[str, Any]]) -> Union[str,
 
 
 # =========================
+# PostgreSQL Functions
+# =========================
+def risk_to_severity(risk: str) -> str:
+    """Map risk level to severity for PostgreSQL."""
+    risk_severity_map = {
+        "LOW": "LOW",
+        "MEDIUM": "MEDIUM",
+        "HIGH": "HIGH",
+        "CRITICAL": "CRITICAL"
+    }
+    return risk_severity_map.get(str(risk).upper(), "MEDIUM")
+
+
+def extract_max_risk(fixes: List[Dict[str, Any]]) -> str:
+    """Extract the maximum risk level from all fixes."""
+    if not fixes:
+        return "MEDIUM"
+    
+    risk_hierarchy = {"CRITICAL": 4, "HIGH": 3, "MEDIUM": 2, "LOW": 1}
+    max_risk = "MEDIUM"
+    max_score = 2
+    
+    for fix in fixes:
+        risk = str(fix.get("risk", "MEDIUM")).upper()
+        score = risk_hierarchy.get(risk, 2)
+        if score > max_score:
+            max_score = score
+            max_risk = risk
+    
+    return max_risk
+
+
+def update_postgres_severity(
+    jira_key: str,   # kept for compatibility, NOT used
+    severity: str,
+    error_event_id: Optional[str] = None  # kept for compatibility, NOT used
+) -> bool:
+    """Update ONLY the severity of the latest error_event row."""
+    try:
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            port=DB_PORT,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD
+        )
+        cursor = conn.cursor()
+
+        update_query = f"""
+            UPDATE {DB_TABLE}
+            SET severity = %s
+            WHERE id = (
+                SELECT id
+                FROM {DB_TABLE}
+                ORDER BY created_at DESC
+                LIMIT 1
+            )
+        """
+
+        cursor.execute(update_query, (severity,))
+        conn.commit()
+
+        rows_updated = cursor.rowcount
+
+        cursor.close()
+        conn.close()
+
+        if rows_updated == 1:
+            print(f"✅ PostgreSQL updated latest severity={severity}")
+            return True
+        else:
+            print("⚠️ PostgreSQL: No row updated")
+            return False
+
+    except Error as e:
+        print(f"❌ PostgreSQL Error: {e}")
+        return False
+    except Exception as e:
+        print(f"❌ Unexpected error during PostgreSQL update: {e}")
+        return False
+
+
+# =========================
 # Jira Creation Logic
 # =========================
 def create_jira_bug(payload: Dict[str, Any]) -> Dict[str, str]:
@@ -290,6 +386,13 @@ def create_jira_bug(payload: Dict[str, Any]) -> Dict[str, str]:
     data = response.json()
     jira_key = data["key"]
     jira_url = f"{JIRA_BASE_URL}/browse/{jira_key}"
+
+    # Extract max risk from fixes and update PostgreSQL severity
+    if isinstance(description, dict):
+        fixes = description.get("fixes", [])
+        max_risk = extract_max_risk(fixes)
+        severity = risk_to_severity(max_risk)
+        update_postgres_severity(jira_key, severity)
 
     return {"jira_key": jira_key, "jira_url": jira_url}
 
