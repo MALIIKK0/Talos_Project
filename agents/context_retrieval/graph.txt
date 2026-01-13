@@ -1,3 +1,31 @@
+
+ {
+      "_id": "6936f4fac23a045bfa3e4b5a",
+      "createdDate": "2025-12-08T15:55:38Z",
+      "stackTrace": "Class.SimpleProcess.createContactWithError: line 10, column 1\nAnonymousBlock: line 1, column 1\nAnonymousBlock: line 1, column 1",
+      "source": "SimpleProcess",
+      "message_short": "Erreur Contact",
+      "message": "Erreur lors de la création du contact\nMessage: Insert failed. First exception on row 0; first error: REQUIRED_FIELD_MISSING, Required fields are missing: [Name]: [Name]",
+      "logCode": null,
+      "function": "createContactWithError",
+      "name": "a00g5000003KesQ",
+      "id": "a00g5000003KesQAAS",
+    }
+
+{
+      "_id": "6939749171a587134526f68a",
+      "createdDate": "2025-12-10T13:24:32Z",
+      "stackTrace": "Class.UpdateLeadError.updateLeadWithError: line 16, column 1\nAnonymousBlock: line 1, column 1\nAnonymousBlock: line 1, column 1",
+      "source": "UpdateLeadError",
+      "message_short": "DmlException",
+      "message": "Erreur lors de la mise à jour du Lead\nMessage: Update failed. First exception on row 0; first error: MISSING_ARGUMENT, Id not specified in an update call: []",
+      "logCode": null,
+      "function": "updateLeadWithError",
+      "name": "a00g5000003Rr9l",
+      "id": "a00g5000003Rr9lAAC",
+    }
+    
+
 {
       "_id": "69539bc3ce861b719ead7b4e",
       "createdDate": "2025-12-30T09:30:42Z",
@@ -26,4 +54,31 @@
       "name": "a00g5000004S6rN",
       "id": "a00g5000004S6rNAAS",
       "_received_at": "2025-12-30T10:27:06.785000Z"
+    }
+
+
+
+    
+{
+  "source": "SimpleProcess",
+  "function": "createContactWithError",
+  "message": "Erreur lors de la création du contact\nMessage: Insert failed. First exception on row 0; first error: REQUIRED_FIELD_MISSING, Required fields are missing: [Name]: [Name]",
+  "messageCourt": "Erreur Contact",
+  "referenceId": "a00g5000003KesQAAS",
+  "stackTrace": "Class.SimpleProcess.createContactWithError: line 10, column 1\nAnonymousBlock: line 1, column 1\nAnonymousBlock: line 1, column 1",
+  "logCode": null,
+  "createdDate": "2025-12-08T15:55:38Z",
+  "additionalProp1": {}
+}
+{
+      
+      "source": "UpdateLeadError",
+      "function": "updateLeadWithError",
+      "messageCourt": "DmlException",
+      "referenceId": "a20g5022203KesQAAS",
+      "message": "Erreur lors de la mise à jour du Lead\nMessage: Update failed. First exception on row 0; first error: MISSING_ARGUMENT, Id not specified in an update call: []",
+      "stackTrace": "Class.UpdateLeadError.updateLeadWithError: line 16, column 1\nAnonymousBlock: line 1, column 1\nAnonymousBlock: line 1, column 1",
+      "logCode": null,
+      "createdDate": "2025-12-10T13:24:32Z",
+      "additionalProp1": {}
     }

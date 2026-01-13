@@ -8,12 +8,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 import uvicorn
 from asyncio import create_task
+
+from starlette.responses import JSONResponse
+
 from DataIngestion.app.core.config import settings
 from DataIngestion.app.api.routes import router as api_router
+
 from DataIngestion.app.db.engine import init_engine, dispose_engine
 from DataIngestion.app.db.init_db import validate_connection, init_db
+from DataIngestion.app.exceptions.base_exception import AppException
 from DataIngestion.app.kafka.producer import get_kafka_producer, close_kafka_producer
 from DataIngestion.app.kafka.consumer import start_consumer_forever
+
+from DataIngestion.app.api.auth_route import auth_router
+from DataIngestion.app.api.user_route import user_router
+
+print("BOOTSTRAP =", settings.KAFKA_BOOTSTRAP_SERVERS)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -71,7 +81,8 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
-
+app.include_router(auth_router)
+app.include_router(user_router)
 
 
 @app.get("/health")
@@ -87,7 +98,12 @@ async def log_requests(request: Request, call_next):
     logger.info(f"{request.method} {request.url.path} → {response.status_code} ({duration:.2f}ms)")
     return response
 
-
+@app.exception_handler(AppException)
+async def app_exception_handler(_, exc: AppException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
 
 if __name__ == "__main__":
     uvicorn.run(
