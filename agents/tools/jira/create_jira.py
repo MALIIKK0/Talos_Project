@@ -91,6 +91,7 @@ def build_fix_section(fix: Dict[str, Any]) -> List[dict]:
             "attrs": {"language": fix.get("language", "apex")},
             "content": [{"type": "text", "text": fix["code"]}]
         })
+    update_postgres_severity(fix["risk"])
 
     return blocks
 
@@ -255,7 +256,7 @@ def extract_max_risk(fixes: List[Dict[str, Any]]) -> str:
 
 
 def update_postgres_severity(
-    jira_key: str,   # kept for compatibility, NOT used
+   # jira_key: str,   # kept for compatibility, NOT used
     severity: str,
     error_event_id: Optional[str] = None  # kept for compatibility, NOT used
 ) -> bool:
@@ -392,7 +393,7 @@ def create_jira_bug(payload: Dict[str, Any]) -> Dict[str, str]:
         fixes = description.get("fixes", [])
         max_risk = extract_max_risk(fixes)
         severity = risk_to_severity(max_risk)
-        update_postgres_severity(jira_key, severity)
+        #update_postgres_severity(jira_key, severity)
 
     return {"jira_key": jira_key, "jira_url": jira_url}
 
